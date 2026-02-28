@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>さじグラム</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .input-section {
+      padding: 28px 24px 24px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1a365d;
+      margin-bottom: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    .field {
+      margin-bottom: 22px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #a0aec0;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* ラジオ → トグルボタン */
+    .toggle-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .toggle-label {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .toggle-label input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #718096;
+      background: #f7fafc;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+      user-select: none;
+    }
+
+    .toggle-label input[type="radio"]:checked + .toggle-btn {
+      border-color: #3182ce;
+      background: #ebf8ff;
+      color: #2b6cb0;
+    }
+
+    .toggle-label input[type="radio"]:focus-visible + .toggle-btn {
+      outline: 3px solid #63b3ed;
+      outline-offset: 2px;
+    }
+
+    /* プルダウン共通 */
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 11px 32px 11px 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: #2d3748;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%23718096' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      min-height: 48px;
+      transition: border-color 0.15s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3182ce;
+    }
+
+    select:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    /* 分量行 */
+    .amount-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .amount-row .sep {
+      color: #718096;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    #integer    { width: 74px; }
+    #numerator  { width: 74px; }
+    #denominator { width: 74px; }
+    #ingredient { width: 100%; }
+
+    /* 結果エリア */
+    .result-section {
+      padding: 24px 20px;
+      background: #ebf8ff;
+      border-top: 2px solid #bee3f8;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .result-summary {
+      font-size: 1rem;
+      color: #2b6cb0;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .result-grams {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #1a365d;
+      letter-spacing: -0.02em;
+      text-align: center;
+      line-height: 1;
+    }
+
+    @media (max-width: 360px) {
+      .amount-row {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      #integer, #numerator, #denominator {
+        width: 68px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="input-section">
+      <h1>さじグラム</h1>
+
+      <!-- F1: さじ種別 -->
+      <div class="field">
+        <span class="field-label">さじ種別</span>
+        <div class="toggle-group" role="group" aria-label="さじ種別">
+          <label class="toggle-label">
+            <input type="radio" name="spoon" value="tablespoon" checked>
+            <span class="toggle-btn">大さじ</span>
+          </label>
+          <label class="toggle-label">
+            <input type="radio" name="spoon" value="teaspoon">
+            <span class="toggle-btn">小さじ</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- F2: 分量 -->
+      <div class="field">
+        <span class="field-label">分量</span>
+        <div class="amount-row">
+          <select id="integer" aria-label="整数部"></select>
+          <span class="sep">と</span>
+          <select id="numerator" aria-label="端数の分子"></select>
+          <span class="sep">/</span>
+          <select id="denominator" aria-label="端数の分母"></select>
+        </div>
+      </div>
+
+      <!-- F3: 調味料 -->
+      <div class="field">
+        <label class="field-label" for="ingredient">調味料</label>
+        <select id="ingredient"></select>
+      </div>
+    </div>
+
+    <!-- F4: 結果 -->
+    <div class="result-section" aria-live="polite">
+      <div class="result-summary" id="result-summary"></div>
+      <div class="result-grams" id="result-grams"></div>
+    </div>
+  </div>
+
+  <script>
+    // === 調味料マスタ ===
+    const groups = [
+      { label: "15g（水・酒・酢）",         gramPerTablespoon: 15 },
+      { label: "18g（みりん・しょうゆ・塩）", gramPerTablespoon: 18 },
+      { label: "9g（小麦粉・片栗粉）",       gramPerTablespoon:  9 },
+    ];
+
+    const ingredients = [
+      { name: "水",     group: 0 },
+      { name: "酒",     group: 0 },
+      { name: "酢",     group: 0 },
+      { name: "みりん",  group: 1 },
+      { name: "しょうゆ", group: 1 },
+      { name: "塩",     group: 1 },
+      { name: "小麦粉", group: 2 },
+      { name: "片栗粉", group: 2 },
+    ];
+
+    // === DOM ===
+    const integerSel     = document.getElementById("integer");
+    const numeratorSel   = document.getElementById("numerator");
+    const denominatorSel = document.getElementById("denominator");
+    const ingredientSel  = document.getElementById("ingredient");
+    const resultSummary  = document.getElementById("result-summary");
+    const resultGrams    = document.getElementById("result-grams");
+
+    // === セレクト構築 ===
+    function buildSelects() {
+      // 整数: 0–9、デフォルト1
+      for (let i = 0; i <= 9; i++) {
+        const opt = new Option(i, i);
+        if (i === 1) opt.selected = true;
+        integerSel.appendChild(opt);
+      }
+
+      // 分子: 0–5、デフォルト0
+      for (let i = 0; i <= 5; i++) {
+        numeratorSel.appendChild(new Option(i, i));
+      }
+
+      // 分母: 1–5、デフォルト1
+      for (let i = 1; i <= 5; i++) {
+        denominatorSel.appendChild(new Option(i, i));
+      }
+
+      // 調味料: optgroupごと
+      const grouped = {};
+      ingredients.forEach((item, idx) => {
+        if (!grouped[item.group]) grouped[item.group] = [];
+        grouped[item.group].push({ ...item, idx });
+      });
+
+      Object.entries(grouped).forEach(([gIdx, items]) => {
+        const grp = document.createElement("optgroup");
+        grp.label = groups[gIdx].label;
+        items.forEach(item => {
+          grp.appendChild(new Option(item.name, item.idx));
+        });
+        ingredientSel.appendChild(grp);
+      });
+    }
+
+    // === 分母の有効・無効 ===
+    function syncDenominator() {
+      const num = parseInt(numeratorSel.value, 10);
+      denominatorSel.disabled = (num === 0);
+    }
+
+    // === 計算・表示 ===
+    function calculate() {
+      const intPart    = parseInt(integerSel.value, 10);
+      const num        = parseInt(numeratorSel.value, 10);
+      const den        = parseInt(denominatorSel.value, 10);
+      const isTable    = document.querySelector('input[name="spoon"]:checked').value === "tablespoon";
+      const ingredient = ingredients[parseInt(ingredientSel.value, 10)];
+
+      // グラム計算
+      const fraction   = (num === 0) ? 0 : num / den;
+      const amount     = intPart + fraction;
+      const spoonCoef  = isTable ? 1 : (1 / 3);
+      const rawGrams   = amount * spoonCoef * ingredient.gramPerTablespoon;
+      const grams      = parseFloat(rawGrams.toFixed(2));
+
+      // 分量テキスト
+      let amountStr;
+      if (num === 0) {
+        amountStr = String(intPart);
+      } else if (intPart === 0) {
+        amountStr = `${num}/${den}`;
+      } else {
+        amountStr = `${intPart}と${num}/${den}`;
+      }
+
+      const spoonName = isTable ? "大さじ" : "小さじ";
+      resultSummary.textContent = `${ingredient.name}　${spoonName}${amountStr}`;
+      resultGrams.textContent   = `＝ ${grams}g`;
+    }
+
+    // === イベント登録 ===
+    integerSel.addEventListener("change", calculate);
+    numeratorSel.addEventListener("change", () => { syncDenominator(); calculate(); });
+    denominatorSel.addEventListener("change", calculate);
+    ingredientSel.addEventListener("change", calculate);
+    document.querySelectorAll('input[name="spoon"]').forEach(r =>
+      r.addEventListener("change", calculate)
+    );
+
+    // === 初期化 ===
+    buildSelects();
+    syncDenominator();
+    calculate();
+  </script>
+</body>
+</html>
