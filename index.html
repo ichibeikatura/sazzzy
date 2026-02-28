@@ -273,15 +273,22 @@
     for (let i = 1; i <= 5; i++) denominatorSel.appendChild(new Option(i, i));
 
     // 調味料プルダウン（optgroupごと）
-    groups.forEach(grp => {
+    const optgroups = groups.map(grp => {
       const og = document.createElement("optgroup");
-      og.label = `大さじ1 = ${grp.gramPerTablespoon}g`;
-      grp.items.forEach((name, i) => {
+      grp.items.forEach(name => {
         const idx = ingredients.findIndex(it => it.name === name);
         og.appendChild(new Option(name, idx));
       });
       ingredientSel.appendChild(og);
+      return og;
     });
+
+    function updateOptgroupLabels(isTable) {
+      groups.forEach((grp, gi) => {
+        const grams = isTable ? grp.gramPerTablespoon : parseFloat((grp.gramPerTablespoon / 3).toFixed(2));
+        optgroups[gi].label = `${isTable ? "大さじ" : "小さじ"}1 = ${grams}g`;
+      });
+    }
 
     function syncDenominator() {
       denominatorSel.disabled = (parseInt(numeratorSel.value, 10) === 0);
@@ -292,6 +299,7 @@
       const num        = parseInt(numeratorSel.value, 10);
       const den        = parseInt(denominatorSel.value, 10);
       const isTable    = document.querySelector('input[name="spoon"]:checked').value === "tablespoon";
+      updateOptgroupLabels(isTable);
       const ingredient = ingredients[parseInt(ingredientSel.value, 10)];
       const fraction   = num === 0 ? 0 : num / den;
       const amount     = intPart + fraction;
