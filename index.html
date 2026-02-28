@@ -316,7 +316,7 @@
       const fraction   = (num === 0) ? 0 : num / den;
       const amount     = intPart + fraction;
       const spoonCoef  = isTable ? 1 : (1 / 3);
-      const rawGrams   = amount * spoonCoef * ingredient.gramPerTablespoon;
+      const rawGrams   = amount * spoonCoef * groups[ingredient.group].gramPerTablespoon;
       const grams      = parseFloat(rawGrams.toFixed(2));
 
       // 分量テキスト
