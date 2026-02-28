@@ -5,19 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>さじグラム</title>
   <style>
-    /* Rosé Pine */
+    /* Rosé Pine Dawn */
     :root {
-      --base:    #191724;
-      --surface: #1f1d2e;
-      --overlay: #26233a;
-      --muted:   #6e6a86;
-      --subtle:  #908caa;
-      --text:    #e0def4;
-      --love:    #eb6f92;
-      --gold:    #f6c177;
-      --rose:    #ebbcba;
-      --hl-med:  #403d52;
-      --hl-high: #524f67;
+      --base:    #faf4ed;
+      --surface: #fffaf3;
+      --overlay: #f2e9e1;
+      --muted:   #9893a5;
+      --subtle:  #797593;
+      --text:    #575279;
+      --love:    #b4637a;
+      --gold:    #ea9d34;
+      --rose:    #d7827a;
+      --hl-low:  #f4ede8;
+      --hl-med:  #dfdad9;
+      --hl-high: #cecacd;
     }
 
     *, *::before, *::after {
@@ -42,11 +43,12 @@
       max-width: 440px;
       background: var(--surface);
       border-radius: 20px;
+      box-shadow: 0 2px 16px rgba(87, 82, 121, 0.08);
       overflow: hidden;
     }
 
     .input-section {
-      padding: 28px 24px 20px;
+      padding: 28px 24px 24px;
     }
 
     h1 {
@@ -106,7 +108,7 @@
 
     .toggle-label input[type="radio"]:checked + .toggle-btn {
       border-color: var(--love);
-      background: rgba(235, 111, 146, 0.12);
+      background: rgba(180, 99, 122, 0.08);
       color: var(--love);
     }
 
@@ -127,7 +129,7 @@
       font-family: inherit;
       color: var(--text);
       cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%236e6a86' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%239893a5' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 10px center;
       min-height: 48px;
@@ -140,7 +142,7 @@
     }
 
     select:disabled {
-      opacity: 0.3;
+      opacity: 0.35;
       cursor: default;
     }
 
@@ -160,52 +162,34 @@
     #integer     { width: 74px; }
     #numerator   { width: 74px; }
     #denominator { width: 74px; }
+    #ingredient  { width: 100%; }
 
     /* 結果エリア */
     .result-section {
-      border-top: 1px solid var(--hl-med);
-    }
-
-    .result-header {
-      padding: 14px 24px 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--subtle);
-      letter-spacing: 0.06em;
-    }
-
-    .ingredient-list {
-      list-style: none;
-      padding-bottom: 16px;
-    }
-
-    .ingredient-row {
+      padding: 22px 20px 24px;
+      background: var(--hl-low);
+      border-top: 2px solid var(--hl-med);
+      text-align: center;
+      min-height: 108px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      padding: 11px 24px;
-      border-top: 1px solid var(--hl-med);
+      justify-content: center;
+      gap: 6px;
     }
 
-    .ingredient-name {
+    .result-summary {
       font-size: 1rem;
-      color: var(--text);
+      color: var(--subtle);
+      font-weight: 500;
     }
 
-    .ingredient-grams {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: -0.01em;
-      min-width: 64px;
-      text-align: right;
-    }
-
-    .group-sep {
-      height: 1px;
-      background: var(--hl-high);
-      margin: 4px 24px;
-      list-style: none;
+    .result-grams {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--rose);
+      letter-spacing: -0.02em;
+      line-height: 1;
     }
 
     @media (max-width: 360px) {
@@ -245,27 +229,39 @@
           <select id="denominator" aria-label="端数の分母"></select>
         </div>
       </div>
+
+      <!-- 調味料 -->
+      <div class="field">
+        <label class="field-label" for="ingredient">調味料</label>
+        <select id="ingredient"></select>
+      </div>
     </div>
 
-    <!-- 結果: 全調味料一覧 -->
+    <!-- 結果 -->
     <div class="result-section" aria-live="polite">
-      <div class="result-header" id="result-header"></div>
-      <ul class="ingredient-list" id="ingredient-list"></ul>
+      <div class="result-summary" id="result-summary"></div>
+      <div class="result-grams"   id="result-grams"></div>
     </div>
   </div>
 
   <script>
     const groups = [
+      { gramPerTablespoon: 18, items: ["塩", "みりん", "しょうゆ"] },
       { gramPerTablespoon: 15, items: ["水", "酒", "酢"] },
-      { gramPerTablespoon: 18, items: ["みりん", "しょうゆ", "塩"] },
       { gramPerTablespoon:  9, items: ["小麦粉", "片栗粉"] },
     ];
+
+    // 調味料リストをフラットに展開（順番を保持）
+    const ingredients = groups.flatMap((grp, gi) =>
+      grp.items.map(name => ({ name, gramPerTablespoon: grp.gramPerTablespoon, group: gi }))
+    );
 
     const integerSel     = document.getElementById("integer");
     const numeratorSel   = document.getElementById("numerator");
     const denominatorSel = document.getElementById("denominator");
-    const resultHeader   = document.getElementById("result-header");
-    const ingredientList = document.getElementById("ingredient-list");
+    const ingredientSel  = document.getElementById("ingredient");
+    const resultSummary  = document.getElementById("result-summary");
+    const resultGrams    = document.getElementById("result-grams");
 
     // セレクト構築
     for (let i = 0; i <= 9; i++) {
@@ -276,20 +272,15 @@
     for (let i = 0; i <= 5; i++) numeratorSel.appendChild(new Option(i, i));
     for (let i = 1; i <= 5; i++) denominatorSel.appendChild(new Option(i, i));
 
-    // 調味料リストDOM構築（初回のみ）
-    groups.forEach((grp, gi) => {
-      if (gi > 0) {
-        const sep = document.createElement("li");
-        sep.className = "group-sep";
-        sep.setAttribute("role", "separator");
-        ingredientList.appendChild(sep);
-      }
-      grp.items.forEach(name => {
-        const li = document.createElement("li");
-        li.className = "ingredient-row";
-        li.innerHTML = `<span class="ingredient-name">${name}</span><span class="ingredient-grams" data-name="${name}"></span>`;
-        ingredientList.appendChild(li);
+    // 調味料プルダウン（optgroupごと）
+    groups.forEach(grp => {
+      const og = document.createElement("optgroup");
+      og.label = `大さじ1 = ${grp.gramPerTablespoon}g`;
+      grp.items.forEach((name, i) => {
+        const idx = ingredients.findIndex(it => it.name === name);
+        og.appendChild(new Option(name, idx));
       });
+      ingredientSel.appendChild(og);
     });
 
     function syncDenominator() {
@@ -297,15 +288,16 @@
     }
 
     function calculate() {
-      const intPart   = parseInt(integerSel.value, 10);
-      const num       = parseInt(numeratorSel.value, 10);
-      const den       = parseInt(denominatorSel.value, 10);
-      const isTable   = document.querySelector('input[name="spoon"]:checked').value === "tablespoon";
-      const fraction  = num === 0 ? 0 : num / den;
-      const amount    = intPart + fraction;
-      const spoonCoef = isTable ? 1 : (1 / 3);
+      const intPart    = parseInt(integerSel.value, 10);
+      const num        = parseInt(numeratorSel.value, 10);
+      const den        = parseInt(denominatorSel.value, 10);
+      const isTable    = document.querySelector('input[name="spoon"]:checked').value === "tablespoon";
+      const ingredient = ingredients[parseInt(ingredientSel.value, 10)];
+      const fraction   = num === 0 ? 0 : num / den;
+      const amount     = intPart + fraction;
+      const spoonCoef  = isTable ? 1 : (1 / 3);
+      const grams      = parseFloat((amount * spoonCoef * ingredient.gramPerTablespoon).toFixed(2));
 
-      // ヘッダーテキスト
       let amountStr;
       if (num === 0) {
         amountStr = String(intPart);
@@ -314,20 +306,16 @@
       } else {
         amountStr = `${intPart}と${num}/${den}`;
       }
-      resultHeader.textContent = `${isTable ? "大さじ" : "小さじ"}${amountStr}`;
 
-      // 各グループのグラムを更新
-      groups.forEach(grp => {
-        const grams = parseFloat((amount * spoonCoef * grp.gramPerTablespoon).toFixed(2));
-        grp.items.forEach(name => {
-          document.querySelector(`[data-name="${name}"]`).textContent = `${grams}g`;
-        });
-      });
+      const spoonName = isTable ? "大さじ" : "小さじ";
+      resultSummary.textContent = `${ingredient.name}　${spoonName}${amountStr}`;
+      resultGrams.textContent   = `＝ ${grams}g`;
     }
 
     integerSel.addEventListener("change", calculate);
     numeratorSel.addEventListener("change", () => { syncDenominator(); calculate(); });
     denominatorSel.addEventListener("change", calculate);
+    ingredientSel.addEventListener("change", calculate);
     document.querySelectorAll('input[name="spoon"]').forEach(r =>
       r.addEventListener("change", calculate)
     );
