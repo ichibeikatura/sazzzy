@@ -196,6 +196,38 @@
       .amount-row { flex-wrap: wrap; gap: 4px; }
       #integer, #numerator, #denominator { width: 68px; }
     }
+
+    /* 説明セクション */
+    body {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .description {
+      width: 100%;
+      max-width: 440px;
+      padding: 0 4px;
+    }
+
+    .description h2 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .description p {
+      font-size: 0.85rem;
+      color: var(--subtle);
+      line-height: 1.7;
+    }
+
+    .description a {
+      color: var(--love);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -242,6 +274,12 @@
       <div class="result-summary" id="result-summary"></div>
       <div class="result-grams"   id="result-grams"></div>
     </div>
+  </div>
+
+  <div class="description">
+    <h2>これはなに？</h2>
+    <p>大さじと小さじを、グラムに変換する。<br>
+    0.1g単位で3kgまで測れる<a href="https://amzn.to/4bdX1yK" target="_blank" rel="noopener">キッチンスケール</a>の上に、鍋・フライパンを置き、調味料を入れていくと便利。</p>
   </div>
 
   <script>
