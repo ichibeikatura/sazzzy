@@ -33,9 +33,10 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      align-items: flex-start;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
       padding: 20px 16px;
+      gap: 20px;
     }
 
     .container {
@@ -197,11 +198,15 @@
       #integer, #numerator, #denominator { width: 68px; }
     }
 
-    /* 説明セクション */
-    body {
-      flex-direction: column;
-      gap: 20px;
+    .nav {
+      width: 100%;
+      max-width: 440px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 0 4px;
     }
+
+    .nav a { color: var(--love); text-decoration: underline; text-underline-offset: 2px; }
 
     .description {
       width: 100%;
@@ -231,6 +236,8 @@
   </style>
 </head>
 <body>
+  <div class="nav">→ <a href="recipe.html">さじグラム一括変換（レシピをまるごと貼り付けて変換）</a></div>
+
   <div class="container">
     <div class="input-section">
       <h1>さじグラム</h1>
@@ -278,16 +285,35 @@
 
   <div class="description">
     <h2>これはなに？</h2>
-    <p>大さじと小さじを、グラムに変換する。<br>
-    0.1g単位で3kgまで測れる<a href="https://amzn.to/4bdX1yK" target="_blank" rel="noopener">キッチンスケール</a>の上に、鍋・フライパンを置き、調味料を入れていくと便利。</p>
-    <p style="margin-top: 10px;">→ <a href="recipe.html">さじグラム一括変換</a>（レシピをまるごと貼り付けて変換）</p>
+    <p>大さじと小さじをグラムに変換。<br>
+    0.1g単位で3kgまで測れる<a href="https://amzn.to/4bdX1yK" target="_blank" rel="noopener">キッチンスケール</a>の上に、鍋・フライパンを置き、調味料を入れていくと便利。<br>
+    調味料はレシピより少な目にすると失敗が少なくなる。グラムが怪しいと思った時は直感を信じてね。</p>
   </div>
 
   <script>
     const groups = [
-      { gramPerTablespoon: 18, items: ["塩", "みりん", "しょうゆ"] },
-      { gramPerTablespoon: 15, items: ["水", "酒", "酢"] },
-      { gramPerTablespoon:  9, items: ["砂糖", "小麦粉", "片栗粉"] },
+      { gramPerTablespoon: 18,  items: [
+        "塩", "みりん", "しょうゆ", "醤油", "しょう油",
+        "蠣油醤", "オイスターソース", "味噌", "山吹味噌", "ケチャップ"
+      ]},
+      { gramPerTablespoon: 15,  items: [
+        "水", "酒", "酢", "日本酒", "紹興酒", "レモン汁", "溶き玉子"
+      ]},
+      { gramPerTablespoon: 13,  items: [
+        "サラダ油", "オリーブオイル", "ごま油", "油", "ラード", "バター"
+      ]},
+      { gramPerTablespoon: 12,  items: [
+        "ほんだし", "マヨネーズ"
+      ]},
+      { gramPerTablespoon:  9,  items: [
+        "小麦粉", "薄力粉", "片栗粉", "水溶き片栗粉", "砂糖"
+      ]},
+      { gramPerTablespoon: 7.5, items: [
+        "鶏がらスープ", "鶏がらスープの素"
+      ]},
+      { gramPerTablespoon:  6,  items: [
+        "カレー粉", "こんぶだし"
+      ]},
     ];
 
     // 調味料リストをフラットに展開（順番を保持）
