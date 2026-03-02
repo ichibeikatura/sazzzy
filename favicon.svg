@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Rosé Pine Dawn background -->
+  <rect width="32" height="32" rx="7" fill="#faf4ed"/>
+  <!-- Spoon: bowl (upper-right) + handle (lower-left), rotated 40° -->
+  <g transform="rotate(40 16 16)">
+    <ellipse cx="16" cy="8" rx="8" ry="7" fill="#d7827a"/>
+    <rect x="13.5" y="13" width="5" height="16" rx="2.5" fill="#d7827a"/>
+  </g>
+  <!-- Bowl highlight -->
+  <ellipse cx="21" cy="9" rx="3.5" ry="2.5"
+    fill="#e8a090" opacity="0.5" transform="rotate(-40 21 9)"/>
+</svg>
