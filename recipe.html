@@ -176,7 +176,7 @@
   </style>
 </head>
 <body>
-  <div class="nav">← <a href="index.html">さじグラム（1品計算）</a></div>
+  <div class="nav">← <a href="index.html">さじグラム</a>　→ <a href="cup.html">かっぷグラム</a></div>
 
   <div class="container">
     <div class="input-section">
@@ -187,6 +187,7 @@
 砂糖　小匙1
 ごま油 大さじ1/2
 塩 小さじ1/4
+牛乳 1カップ
 鶏もも肉 2枚"></textarea>
       <button class="btn" id="convert-btn">変換</button>
     </div>
@@ -235,6 +236,51 @@
       .flatMap(g => g.items.map(name => ({ name, gpt: g.gramPerTablespoon })))
       .sort((a, b) => b.name.length - a.name.length);
 
+    // カップ用マスタ
+    const cupGroups = [
+      { gramPerCup: 240, items: ["食塩"] },
+      { gramPerCup: 236, items: ["しょうゆ"] },
+      { gramPerCup: 230, items: ["みりん", "みそ", "トマトケチャップ"] },
+      { gramPerCup: 200, items: ["だし汁", "生クリーム", "ヨーグルト", "牛乳", "水", "酒", "酢"] },
+      { gramPerCup: 190, items: ["マヨネーズ"] },
+      { gramPerCup: 180, items: ["バター", "マーガリン", "油"] },
+      { gramPerCup: 150, items: ["お米", "米"] },
+      { gramPerCup: 130, items: ["砂糖", "かたくり粉", "片栗粉"] },
+      { gramPerCup: 100, items: ["小麦粉", "薄力粉"] },
+      { gramPerCup:  90, items: ["スキムミルク"] },
+      { gramPerCup:  40, items: ["パン粉"] },
+    ];
+    const allCupItems = cupGroups
+      .flatMap(g => g.items.map(name => ({ name, gpc: g.gramPerCup })))
+      .sort((a, b) => b.name.length - a.name.length);
+
+    // さじ変換拡張マスタ（allItems より優先、gpt=大さじ gps=小さじ を個別指定）
+    const extSpoonItems = [
+      { name: "バター・マーガリン",       gpt: 12,   gps: 4   },
+      { name: "スパイスソースウスター",   gpt: 15,   gps: 6   },
+      { name: "ブラックペッパーパウダー", gpt:  6,   gps: 2   },
+      { name: "ガーリックあらびき",       gpt:  9.3, gps: 3.1 },
+      { name: "トマトケチャップ",         gpt: 15,   gps: 5   },
+      { name: "からしチューブ",           gpt: 13,   gps: 5   },
+      { name: "わさびチューブ",           gpt: 13,   gps: 5   },
+      { name: "しょうがチューブ",         gpt: 13,   gps: 5   },
+      { name: "にんにくチューブ",         gpt: 13,   gps: 5   },
+      { name: "スキムミルク",             gpt:  6,   gps: 2   },
+      { name: "コチュジャン",             gpt: 14,   gps: 6   },
+      { name: "クミンシード",             gpt:  5.7, gps: 1.9 },
+      { name: "ターメリック",             gpt:  5.4, gps: 1.8 },
+      { name: "シナモン",                 gpt:  5.4, gps: 1.8 },
+      { name: "ジンジャー",               gpt:  5.4, gps: 1.8 },
+      { name: "ナツメッグ",               gpt:  5.1, gps: 1.7 },
+      { name: "豆板醤",                   gpt: 14,   gps: 5   },
+      { name: "わさび粉",                 gpt:  4.5, gps: 1.5 },
+      { name: "からし粉",                 gpt:  4.5, gps: 1.5 },
+      { name: "パン粉",                   gpt:  3,   gps: 1   },
+      { name: "ラー油",                   gpt:  9,   gps: 3   },
+      { name: "食塩",                     gpt: 18,   gps: 6   },
+      { name: "みそ",                     gpt: 18,   gps: 6   },
+    ].sort((a, b) => b.name.length - a.name.length);
+
     // 全角数字・ピリオドを半角に正規化
     function toHalf(s) {
       return s
@@ -270,13 +316,30 @@
         const amount  = parseAmount(m[2]);
         if (amount === null) continue;
 
-        // 調味料マスタ照合（最長一致）
-        const found     = allItems.find(it => norm.includes(it.name)) ?? null;
-        const estimated = !found;
-        const gpt       = found ? found.gpt : 15; // デフォルト: 水相当
-        const raw       = amount * (isTable ? 1 : 1 / 3) * gpt;
-        const grams     = Math.round(raw * 10) / 10;
+        // 調味料マスタ照合（extSpoonItems 優先 → allItems）
+        const extFound  = extSpoonItems.find(it => norm.includes(it.name));
+        const baseFound = extFound ? null : allItems.find(it => norm.includes(it.name));
+        const estimated = !extFound && !baseFound;
+        const g = extFound
+          ? amount * (isTable ? extFound.gpt  : extFound.gps)
+          : baseFound
+          ? amount * (isTable ? baseFound.gpt : baseFound.gpt / 3)
+          : amount * (isTable ? 15 : 5); // デフォルト: 水相当
+        const grams = Math.round(g * 10) / 10;
 
+        hits.push({ grams, estimated, bracketGrams });
+      }
+
+      // カップ表記
+      const cupRe = /((?:\d+と\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?))\s*カップ/g;
+      while ((m = cupRe.exec(norm)) !== null) {
+        const amount = parseAmount(m[1]);
+        if (amount === null) continue;
+        const found     = allCupItems.find(it => norm.includes(it.name)) ?? null;
+        const estimated = !found;
+        const gpc       = found ? found.gpc : 200;
+        const raw       = amount * gpc;
+        const grams     = Math.round(raw * 10) / 10;
         hits.push({ grams, estimated, bracketGrams });
       }
 

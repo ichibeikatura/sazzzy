@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>さじグラム</title>
+  <title>かっぷグラム</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <style>
     /* Rosé Pine Dawn */
@@ -75,51 +75,6 @@
       margin-bottom: 8px;
     }
 
-    /* トグル */
-    .toggle-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .toggle-label {
-      flex: 1;
-      cursor: pointer;
-    }
-
-    .toggle-label input[type="radio"] {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      border: 2px solid var(--hl-med);
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--subtle);
-      background: var(--overlay);
-      transition: border-color 0.15s, background 0.15s, color 0.15s;
-      user-select: none;
-    }
-
-    .toggle-label input[type="radio"]:checked + .toggle-btn {
-      border-color: var(--love);
-      background: rgba(180, 99, 122, 0.08);
-      color: var(--love);
-    }
-
-    .toggle-label input[type="radio"]:focus-visible + .toggle-btn {
-      outline: 2px solid var(--love);
-      outline-offset: 2px;
-    }
-
-    /* セレクト */
     select {
       appearance: none;
       -webkit-appearance: none;
@@ -148,7 +103,6 @@
       cursor: default;
     }
 
-    /* 分量行 */
     .amount-row {
       display: flex;
       align-items: center;
@@ -166,7 +120,6 @@
     #denominator { width: 74px; }
     #ingredient  { width: 100%; }
 
-    /* 結果エリア */
     .result-section {
       padding: 22px 20px 24px;
       background: var(--hl-low);
@@ -237,26 +190,11 @@
   </style>
 </head>
 <body>
-  <div class="nav">→ <a href="recipe.html">さじグラム一括変換</a>　→ <a href="cup.html">かっぷグラム</a></div>
+  <div class="nav">← <a href="index.html">さじグラム</a>　← <a href="recipe.html">さじグラム一括変換</a></div>
 
   <div class="container">
     <div class="input-section">
-      <h1>さじグラム</h1>
-
-      <!-- さじ種別: 小さじ→大さじ、小さじデフォルト -->
-      <div class="field">
-        <span class="field-label">さじ種別</span>
-        <div class="toggle-group" role="group" aria-label="さじ種別">
-          <label class="toggle-label">
-            <input type="radio" name="spoon" value="teaspoon" checked>
-            <span class="toggle-btn">小さじ</span>
-          </label>
-          <label class="toggle-label">
-            <input type="radio" name="spoon" value="tablespoon">
-            <span class="toggle-btn">大さじ</span>
-          </label>
-        </div>
-      </div>
+      <h1>かっぷグラム</h1>
 
       <!-- 分量 -->
       <div class="field">
@@ -267,12 +205,13 @@
           <select id="numerator" aria-label="端数の分子"></select>
           <span class="sep">/</span>
           <select id="denominator" aria-label="端数の分母"></select>
+          <span class="sep">カップ</span>
         </div>
       </div>
 
-      <!-- 調味料 -->
+      <!-- 食材 -->
       <div class="field">
-        <label class="field-label" for="ingredient">調味料</label>
+        <label class="field-label" for="ingredient">食材</label>
         <select id="ingredient"></select>
       </div>
     </div>
@@ -286,21 +225,21 @@
 
   <div class="description">
     <h2>これはなに？</h2>
-    <p>大さじと小さじをグラムに変換。<br>
-    0.1g単位で3kgまで測れる<a href="https://amzn.to/4bdX1yK" target="_blank" rel="noopener">キッチンスケール</a>の上に、鍋・フライパンを置き、調味料を入れていくと便利。<br>
-    調味料はレシピより少な目にすると失敗が少なくなる。</p>
+    <p>カップをグラムに変換。<br>
+    軽量<a href="https://amzn.to/3OEiVTc" target="_blank" rel="noopener">カップ</a>は水平な場所に置いて測る。<br>
+    米150gに水200ml 古米は水を多め、新米は少な目で美味しく炊ける。</p>
   </div>
 
   <script>
     const groups = [
-      { gramPerTablespoon: 18, items: ["塩", "みりん", "しょうゆ"] },
-      { gramPerTablespoon: 15, items: ["水", "酒", "酢"] },
-      { gramPerTablespoon:  9, items: ["砂糖", "小麦粉", "片栗粉"] },
+      { gramPerCup: 200, cupCC: 200, items: ["水", "酒", "生クリーム"] },
+      { gramPerCup: 100, cupCC: 200, items: ["小麦粉（薄力粉）"] },
+      { gramPerCup:  40, cupCC: 200, items: ["パン粉"] },
+      { gramPerCup: 150, cupCC: 180, items: ["米"] },
     ];
 
-    // 調味料リストをフラットに展開（順番を保持）
     const ingredients = groups.flatMap((grp, gi) =>
-      grp.items.map(name => ({ name, gramPerTablespoon: grp.gramPerTablespoon, group: gi }))
+      grp.items.map(name => ({ name, gramPerCup: grp.gramPerCup, group: gi }))
     );
 
     const integerSel     = document.getElementById("integer");
@@ -311,16 +250,16 @@
     const resultGrams    = document.getElementById("result-grams");
 
     // セレクト構築
-    for (let i = 0; i <= 9; i++) {
+    for (let i = 0; i <= 5; i++) {
       const opt = new Option(i, i);
       if (i === 1) opt.selected = true;
       integerSel.appendChild(opt);
     }
     for (let i = 0; i <= 5; i++) numeratorSel.appendChild(new Option(i, i));
-    for (let i = 1; i <= 5; i++) denominatorSel.appendChild(new Option(i, i));
+    for (let i = 1; i <= 4; i++) denominatorSel.appendChild(new Option(i, i));
 
-    // 調味料プルダウン（optgroupごと）
-    const optgroups = groups.map(grp => {
+    // 食材プルダウン（optgroupごと）
+    const optgroups = groups.map((grp, gi) => {
       const og = document.createElement("optgroup");
       grp.items.forEach(name => {
         const idx = ingredients.findIndex(it => it.name === name);
@@ -330,10 +269,9 @@
       return og;
     });
 
-    function updateOptgroupLabels(isTable) {
+    function updateOptgroupLabels() {
       groups.forEach((grp, gi) => {
-        const grams = isTable ? grp.gramPerTablespoon : parseFloat((grp.gramPerTablespoon / 3).toFixed(2));
-        optgroups[gi].label = `${isTable ? "大さじ" : "小さじ"}1 = ${grams}g`;
+        optgroups[gi].label = `1カップ(${grp.cupCC}cc) = ${grp.gramPerCup}g`;
       });
     }
 
@@ -342,16 +280,14 @@
     }
 
     function calculate() {
+      updateOptgroupLabels();
       const intPart    = parseInt(integerSel.value, 10);
       const num        = parseInt(numeratorSel.value, 10);
       const den        = parseInt(denominatorSel.value, 10);
-      const isTable    = document.querySelector('input[name="spoon"]:checked').value === "tablespoon";
-      updateOptgroupLabels(isTable);
       const ingredient = ingredients[parseInt(ingredientSel.value, 10)];
       const fraction   = num === 0 ? 0 : num / den;
       const amount     = intPart + fraction;
-      const spoonCoef  = isTable ? 1 : (1 / 3);
-      const grams      = parseFloat((amount * spoonCoef * ingredient.gramPerTablespoon).toFixed(2));
+      const grams      = parseFloat((amount * ingredient.gramPerCup).toFixed(2));
 
       let amountStr;
       if (num === 0) {
@@ -362,8 +298,7 @@
         amountStr = `${intPart}と${num}/${den}`;
       }
 
-      const spoonName = isTable ? "大さじ" : "小さじ";
-      resultSummary.textContent = `${ingredient.name}　${spoonName}${amountStr}`;
+      resultSummary.textContent = `${ingredient.name}　${amountStr}カップ`;
       resultGrams.textContent   = `＝ ${grams}g`;
     }
 
@@ -371,9 +306,6 @@
     numeratorSel.addEventListener("change", () => { syncDenominator(); calculate(); });
     denominatorSel.addEventListener("change", calculate);
     ingredientSel.addEventListener("change", calculate);
-    document.querySelectorAll('input[name="spoon"]').forEach(r =>
-      r.addEventListener("change", calculate)
-    );
 
     syncDenominator();
     calculate();
