@@ -301,7 +301,7 @@
         div.className = 'result-line';
 
         if (item.hits.length === 0) {
-          div.innerHTML = `${esc(item.line)}<span class="no-conv">（変換なし）</span>`;
+          div.innerHTML = esc(item.line);
         } else {
           const parts = item.hits.map(h => {
             const g   = h.bracketGrams !== null ? h.bracketGrams : h.grams;
